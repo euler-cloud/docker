@@ -1,0 +1,11 @@
+version: '3'
+services:
+  gateway:
+    image: eulerproject/euler-cloud-gateway:1.0.0
+    volumes:
+      - ./volumes/gateway/conf:/app/config
+#      links:
+#        - mysql
+#        - redis
+#      ports:
+#        - "8080:8080"
