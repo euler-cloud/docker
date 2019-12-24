@@ -3,9 +3,58 @@ services:
   gateway:
     image: eulerproject/euler-cloud-gateway:1.0.0
     volumes:
-      - ./volumes/gateway/conf:/app/config
-#      links:
-#        - mysql
-#        - redis
-#      ports:
-#        - "8080:8080"
+      - /data/docker/volumes/euler-cloud/gateway/conf:/app/config
+  
+  redis:
+    image: redis:4.0.10
+    volumes:
+    - /data/docker/volumes/euler-cloud/redis/data:/data
+    - /data/docker/volumes/euler-cloud/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  registry:
+    image: eulerproject/euler-cloud-registry:1.0.0-alpha
+    volumes:
+    - /data/docker/volumes/euler-cloud/registry/config:/app/config:ro
+    - /data/docker/volumes/euler-cloud/registry/log:/var/log/euler-cloud/registry
+    - /data/docker/volumes/euler-cloud/registry/dump:/var/dump/euler-cloud/registry
+    ports:
+    - 28761:8761
+    environment:
+    - JAVA_OPTS=
+      -server
+      -Xms256m
+      -Xmx256m
+      -Dfile.encoding=UTF-8
+      -Dsun.jnu.encoding=UTF-8
+      -XX:+HeapDumpBeforeFullGC
+      -XX:HeapDumpPath=/var/dump/euler-cloud/registry
+      -XX:+UseGCLogFileRotation
+      -XX:NumberOfGCLogFiles=2
+      -XX:GCLogFileSize=64M
+      -XX:+PrintGCDetails
+      -XX:+PrintGCDateStamps
+      -Xloggc:/var/log/euler-cloud/registry/gc.log  
+
+  app-uc:
+    image: dmagico/uc:1.0.0-yunpian-star-alpha
+    volumes:
+    - /data/docker/volumes/euler-cloud/app-uc/runtime:/var/lib/user-center
+    - /data/docker/volumes/euler-cloud/app-uc/log:/var/log/user-center
+    - /data/docker/volumes/euler-cloud/app-uc/dump:/var/dump/user-center
+    ports:
+    - 20002:8080
+    environment:
+    - JAVA_OPTS=
+      -server
+      -Xms256m
+      -Xmx256m
+      -Dfile.encoding=UTF-8 
+      -Dsun.jnu.encoding=UTF-8
+      -XX:HeapDumpPath=/var/dump/user-center
+      -XX:+UseGCLogFileRotation
+      -XX:NumberOfGCLogFiles=2
+      -XX:GCLogFileSize=64M
+      -XX:+PrintGCDetails
+      -XX:+PrintGCDateStamps
+      -Xloggc:/var/log/user-center/gc.log
