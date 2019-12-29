@@ -1,10 +1,5 @@
 version: '3'
 services:
-  gateway:
-    image: eulerproject/euler-cloud-gateway:1.0.0
-    volumes:
-      - /data/docker/volumes/euler-cloud/gateway/conf:/app/config
-  
   redis:
     image: redis:4.0.10
     volumes:
@@ -13,11 +8,10 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
 
   registry:
-    image: eulerproject/euler-cloud-registry:1.0.0-alpha
+    image: eulerproject/euler-cloud-registry:1.0.0-SNAPSHOT
     volumes:
-    - /data/docker/volumes/euler-cloud/registry/config:/app/config:ro
-    - /data/docker/volumes/euler-cloud/registry/log:/var/log/euler-cloud/registry
-    - /data/docker/volumes/euler-cloud/registry/dump:/var/dump/euler-cloud/registry
+    - /data/docker/volumes/euler-cloud/registry/conf:/app/conf:ro
+    - /data/docker/volumes/euler-cloud/registry/runtime:/app/runtime
     ports:
     - 28761:8761
     environment:
@@ -25,23 +19,39 @@ services:
       -server
       -Xms256m
       -Xmx256m
-      -Dfile.encoding=UTF-8
-      -Dsun.jnu.encoding=UTF-8
-      -XX:+HeapDumpBeforeFullGC
-      -XX:HeapDumpPath=/var/dump/euler-cloud/registry
-      -XX:+UseGCLogFileRotation
-      -XX:NumberOfGCLogFiles=2
-      -XX:GCLogFileSize=64M
-      -XX:+PrintGCDetails
-      -XX:+PrintGCDateStamps
-      -Xloggc:/var/log/euler-cloud/registry/gc.log  
+
+  gateway:
+    image: eulerproject/euler-cloud-gateway:1.0.0-SNAPSHOT
+    volumes:
+    - /data/docker/volumes/euler-cloud/gateway/conf:/app/conf:ro
+    - /data/docker/volumes/euler-cloud/gateway/runtime:/app/runtime
+    ports:
+    - 10000:8080
+    environment:
+    - JAVA_OPTS=
+      -server
+      -Xms256m
+      -Xmx256m
+
+  app-image:
+    image: eulerproject/euler-cloud-image:1.0.0-SNAPSHOT
+    volumes:
+    - /data/docker/volumes/euler-cloud/app-image/conf:/app/conf:ro
+    - /data/docker/volumes/euler-cloud/app-image/runtime:/app/runtime
+    ports:
+    - 10001:8080
+    environment:
+    - JAVA_OPTS=
+      -server
+      -Xms256m
+      -Xmx256m
 
   app-uc:
-    image: dmagico/uc:1.0.0-yunpian-star-alpha
+    image: eulerproject/user-center:1.0.0-SNAPSHOT
     volumes:
-    - /data/docker/volumes/euler-cloud/app-uc/runtime:/var/lib/user-center
-    - /data/docker/volumes/euler-cloud/app-uc/log:/var/log/user-center
-    - /data/docker/volumes/euler-cloud/app-uc/dump:/var/dump/user-center
+    - /data/docker/volumes/euler-cloud/app-uc/conf:/usr/local/app/conf:ro
+    - /data/docker/volumes/euler-cloud/app-uc/runtime:/user/local/app/runtime
+    - /data/docker/volumes/euler-cloud/app-uc/log:/usr/local/tomcat/logs
     ports:
     - 20002:8080
     environment:
@@ -49,12 +59,3 @@ services:
       -server
       -Xms256m
       -Xmx256m
-      -Dfile.encoding=UTF-8 
-      -Dsun.jnu.encoding=UTF-8
-      -XX:HeapDumpPath=/var/dump/user-center
-      -XX:+UseGCLogFileRotation
-      -XX:NumberOfGCLogFiles=2
-      -XX:GCLogFileSize=64M
-      -XX:+PrintGCDetails
-      -XX:+PrintGCDateStamps
-      -Xloggc:/var/log/user-center/gc.log
